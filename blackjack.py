@@ -5,12 +5,12 @@ import os
 WIDTH = 640
 HEIGHT = 640
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-
+BLACKJACK = 21
 CARD_WxH = 180
 
 SUITS = ['C', 'D', 'H', 'S']
-FACE_VALUES = ['J','K','Q','A']
-VALUES = [2,3,4,5,6,7,8,9,10]
+FACE_VALUES = ['A','A','A','A']
+# VALUES = [2,3,4,5,6,7,8,9,10]
 
 
 class Card:
@@ -30,17 +30,23 @@ class Card:
 
 def init_deck(deck: list[Card]):
         for suit in SUITS:
-            for value in VALUES + FACE_VALUES:
+            for value in FACE_VALUES:
                 deck.append(Card(value, suit))
         random.shuffle(deck)
 
 
 class Entity:
     def __init__(self, name=""):
-        self.__value = 0
+        self.value = 0
         self.name = name
         self.hand = []
         self.ace_count = 0
+
+    @property
+    def get_value(self) -> int:
+        return self.value # python encapsulation weird???...
+
+    
 
     def card_GUI(self):
         print(self.hand) # not very pythonic GUI
@@ -54,20 +60,32 @@ class Entity:
 
     def hand_sum(self):
         if not self.hand and len(self.hand) < 1:
-            return self.__value
+            return self.value
         sum = 0
         for card in self.hand:
             sum += card_logic(card.value, self)
-        self.__value = sum
 
-def card_logic(value, entity: Entity):
+        self.value = sum
+
+        ace_logic(self)
+        
+        return self.value
+
+def card_logic(value, entity: Entity):        
         if value not in FACE_VALUES:
             return value
         if value == 'A':
-            ++entity.ace_count
+            entity.ace_count += 1
+            return 11
+        
         else:
             return 10
-        
+
+def ace_logic(entity: Entity):
+    while (entity.ace_count > 0 and entity.value > 21):
+        entity.ace_count -= 1
+        entity.value -= 10
+     
 def give_card(deck: list[Card])-> Card:
     return deck.pop(0)
 
@@ -75,7 +93,8 @@ class Dealer(Entity):
     def __init__(self, name=""):
         super().__init__(name)
 
-    
+    def give_card(entity: Entity, deck: list[Card]):
+        entity.hand.append(deck.pop(0))
 
     def reveal_card(self):
         self.hand[0].load_image()
@@ -106,9 +125,12 @@ class Blackjack:
                     running = False
 
 
-            screen.fill((100,255,0))
+            screen.fill((50,255,10))
 
             me.card_GUI()
+            
+
+            print(me.hand_sum())
 
             
             pygame.display.flip()
