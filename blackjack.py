@@ -47,6 +47,7 @@ class Entity:
         self.name = name
         self.hand = []
         self.ace_count = 0
+        self.end_turn = False
 
         # value is slightly broken if get_sum is not invoked
 
@@ -109,35 +110,33 @@ class Dealer(Entity):
     def reveal_card(self):
         self.hand[0]
 
+    def reveal_hand(self):
+        card_x = 30
+        for card in self.hand: # could use list for loops but not in the mood
+            image = pygame.transform.scale(card.get_image(),(CARD_WxH,CARD_WxH))
+            screen.blit(image,(card_x, 50 ))
+            card_x += CARD_WxH
+
     def logic(self, deck: list[Card], player: Entity):
         if (self.value == 17):
             return self.value
-        if (self.value < 16 and player.value > 18):
-            self.hand.append(deck.pop(0))
+        # if (self.value < 16 and player.value > 18):
+        #     self.hand.append(deck.pop(0))
 
-        while (self.value != BLACKJACK and player.value == BLACKJACK):
+        while (self.value != BLACKJACK and player.value == BLACKJACK): # drains the deck not to sure why needs to ne debugged
             self.hand.append(deck.pop(0))
                
-
-
-
     def deal_cards(self, entity: Entity, deck: list[Card]):
         for card in range(2): # this is the first hand
             self.hand.append(give_card(deck))
             entity.hand.append(give_card(deck)) # i feel like this can be DNRY'd
 
     #overriding inherited function not sure if there is a better approach
-    def card_GUI(self):
+    def card_GUI(self, player: Entity):
             card_x = 30
             image = pygame.transform.scale(self.hand[0].get_image(),(CARD_WxH,CARD_WxH))
             screen.blit(image,(card_x, 50 ))
             card_x += CARD_WxH
-
-
-            # for card in self.hand: # could use list for loops but not in the mood
-            #     image = pygame.transform.scale(card.get_image(),(CARD_WxH,CARD_WxH))
-            #     screen.blit(image,(card_pos, 50 ))
-            #     card_pos += CARD_WxH
 
 class Blackjack:
 
@@ -162,20 +161,22 @@ class Blackjack:
             self.player.hand_sum()
             self.dealer.hand_sum()
 
-            screen.fill((50,255,10))
+            screen.fill((50,225,10))
 
             if keys[pygame.K_SPACE] and self.player.value != 21 and self.player.value < 21:
                 self.dealer.give_card(self.player, deck)
                 self.player.hand_sum()
 
-
             self.dealer.logic(deck, self.player)
-            
-
+            self.dealer.card_GUI(self.player)
             print(self.dealer.hand_sum())
 
+            if (self.player.value > BLACKJACK):
+                self.dealer.reveal_hand()
+
+
+
             self.player.card_GUI()
-            self.dealer.card_GUI()
             
             pygame.display.flip()
             clock.tick(10.0)
