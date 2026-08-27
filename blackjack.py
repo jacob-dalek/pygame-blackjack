@@ -16,9 +16,10 @@ class Card:
         self.value = value
         self.suit = suit
 
-    def load_image(self):
+    def get_image(self):
         card = f"{os.getcwd()}/cards/{self.value}-{self.suit}.png" 
         image = pygame.image.load(card)
+        return image
         # image = pygame.transform.scale(image,(180,180))
         # screen.blit(image,(0,HEIGHT-180))
 
@@ -33,13 +34,14 @@ def init_deck(deck: list[Card]):
 
 
 class Entity:
-    def __init__(self, hand: list[Card], name=""):
+    def __init__(self, name=""):
         self.__value = 0
         self.name = name
-        self.hand = hand
+        self.hand = []
         self.ace_count = 0
 
-    
+    def card_GUI(self): # not very pythonic
+
 
     def hand_sum(self):
         if not self.hand and len(self.hand) < 1:
@@ -56,13 +58,24 @@ def card_logic(value, entity: Entity):
             ++entity.ace_count
         else:
             return 10
+        
+def give_card(deck: list[Card])-> Card:
+    return deck.pop(0)
 
 class Dealer(Entity):
-    def __init__(self, hand, name=""):
-        super().__init__(hand, name)
+    def __init__(self, name=""):
+        super().__init__(name)
+
+    
 
     def reveal_card(self):
         self.hand[0].load_image()
+
+    def deal_cards(self, entity: Entity, deck: list[Card]):
+        for card in range(2): # this is the first hand
+            self.hand.append(give_card(deck))
+            entity.hand.append(give_card(deck)) # i feel like this can be DNRY'd
+
 
 class Blackjack:
 
@@ -73,16 +86,17 @@ class Blackjack:
         init_deck(deck)
         pygame.init()
         running = True
+
+        dealer: Dealer = Dealer("John")
+        me: Entity = Entity("Jacob")
+        dealer.deal_cards(me, deck)
+
         while running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
 
             screen.fill((100,255,0))
-
-            print(deck[0])
-            deck[0].load_image()
-
             pygame.display.flip()
             pygame.display.update()
 
