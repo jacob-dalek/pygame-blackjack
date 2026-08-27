@@ -6,6 +6,8 @@ WIDTH = 640
 HEIGHT = 640
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
+CARD_WxH = 180
+
 SUITS = ['C', 'D', 'H', 'S']
 FACE_VALUES = ['J','K','Q','A']
 VALUES = [2,3,4,5,6,7,8,9,10]
@@ -23,7 +25,7 @@ class Card:
         # image = pygame.transform.scale(image,(180,180))
         # screen.blit(image,(0,HEIGHT-180))
 
-    def __str__(self):
+    def __repr__(self): # not __str__ weird dundee methods 
         return f"{self.value} {self.suit}"
 
 def init_deck(deck: list[Card]):
@@ -40,7 +42,14 @@ class Entity:
         self.hand = []
         self.ace_count = 0
 
-    def card_GUI(self): # not very pythonic
+    def card_GUI(self):
+        print(self.hand) # not very pythonic GUI
+
+        card_pos = 0        
+        for card in self.hand: # could use list for loops but not in the mood
+            image = pygame.transform.scale(card.get_image(),(CARD_WxH,CARD_WxH))
+            screen.blit(image,(card_pos,HEIGHT-CARD_WxH))
+            card_pos += CARD_WxH
 
 
     def hand_sum(self):
@@ -96,7 +105,12 @@ class Blackjack:
                 if event.type == pygame.QUIT:
                     running = False
 
+
             screen.fill((100,255,0))
+
+            me.card_GUI()
+
+            
             pygame.display.flip()
             pygame.display.update()
 
