@@ -1,5 +1,7 @@
 <h1> Blackjack Project </h1>
+
 1. To run clone the repo then in the terminal "pip install -r requirements.txt" and run!
+
 2. This is unfinished very buggy the core logic works but i have never used pygame before...
 
 <h2> Bugs && Progress </h2>
