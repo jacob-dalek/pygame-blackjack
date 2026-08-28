@@ -9,6 +9,32 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Blackjack")
 clock = pygame.time.Clock()  # Initialize the clock object
 
+# class Engine:
+#     def __init__(self, width, height, caption="Blackjack"):
+#         self.resolution = width, height
+#         self.caption = caption
+#         self.screen = pygame.display.set_mode(self.resolution)
+
+
+#     def run(self, running=False, fps=10):
+#         pygame.display.set_caption("Blackjack")
+#         clock = pygame.time.Clock()  # Initialize the clock object
+
+#         while running:
+#             for event in pygame.event.get():
+#                 if event.type == pygame.QUIT:
+#                     running = False
+
+#         pygame.display.flip()
+
+#         self.screen.fill((0,255,0))
+
+        
+#         clock.tick(fps)
+#         pygame.display.update()
+
+
+
 class Card:
     def __init__(self, value, suit, size):
         self.value = value
@@ -23,24 +49,28 @@ class Card:
         return f"{self.value} {self.suit}"
 
 class Card_GUI:
-    def __init__(self, entity, card_size=90):
+    def __init__(self, entity, card_size=90, card_x=0, card_y=HEIGHT):
         self.entity = entity
         self.card_size = card_size
+        self.card_x = card_x 
+        self.card_y = card_y
 
-    def display_hand(self, card_x=0):
-        card_y = HEIGHT-self.card_size
+    # def display_card(self, card):
+    #     image = pygame.image.load(url)
+    #     image = pygame.transform.scale(image, (self.card_size, self.card_size))
+    #     screen.blit(image, (card_x, card_y))
+
+    def display_hand(self):
+        self.card_y -=self.card_size
         for url in [card.get_image_url() for card in self.entity.hand]:
-            if (card_x > WIDTH-60): # will need alternative resolution logic
-                card_x = 0
-                card_y -= self.card_size
+            if (self.card_x > WIDTH-60): # will need alternative resolution logic
+                self.card_x = 0
+                self.card_y -= self.card_size
 
             image = pygame.image.load(url)
             image = pygame.transform.scale(image, (self.card_size, self.card_size))
-            screen.blit(image, (card_x, card_y))
-            card_x += self.card_size
-
-
-
+            screen.blit(image, (self.card_x, self.card_y))
+            self.card_x += self.card_size
 
 class Entity:
     def __init__(self, name=""):
@@ -63,8 +93,8 @@ class Entity:
             self.ace_count -= 1
             self.value -= 10
 
-    def output_card(self, card_gui: Card_GUI, card_x=0): # defualt arg not great there is a better way of handling data surely
-        card_gui.display_hand(card_x)
+    def output_hand(self, card_gui: Card_GUI): # defualt arg not great there is a better way of handling data surely
+        card_gui.display_hand()
 
     def hand_sum(self):
         if not self.hand and len(self.hand) < 1:
@@ -78,9 +108,6 @@ class Entity:
 
         return self.value
 
-
-
-     
 
 class Dealer(Entity):
     def __init__(self, name=""):
@@ -109,15 +136,29 @@ class Dealer(Entity):
             self.give_card(self, deck)
             self.give_card(entity, deck)
 
+
+
 class Blackjack:
     def __init__(self, player: Entity, dealer: Dealer):
         self.player = player
         self.dealer = dealer
 
+    def user_input(self, deck):
+        keys = pygame.key.get_pressed()
+
+        if keys[pygame.K_SPACE]:
+            self.dealer.give_card(self.player, deck)
+
+        if keys[pygame.K_n]:
+            # self.win_logic()
+            return
+
+        
+            
 
     def win_logic(self):
-        player_score = 21
-        dealer_score = 21
+        player_score = self.player.value
+        dealer_score = self.player.value
 
         # not a fan of the chaining but if it works so be it
         if player_score > dealer_score and player_score < BLACKJACK: 
@@ -145,38 +186,40 @@ class Blackjack:
     def run(self): 
         deck: list[Card] = []
         Blackjack.init_deck(deck)
-        print(deck)
         running = True
-
         self.dealer.deal_cards(self.player, deck)
+
 
         while running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
 
-            keys = pygame.key.get_pressed()
-
             self.player.hand_sum()
-            self.dealer.hand_sum()
+            self.dealer.hand_sum() # need a dnry here
 
             screen.fill((50,225,10))
 
-            if keys[pygame.K_SPACE]:
-                self.dealer.give_card(self.player, deck)
+            self.user_input(deck)
 
-            # self.dealer.logic(deck, self.player)
-            # self.dealer.card_gui(self.player)
-            # print(self.dealer.hand_sum()) =
+            self.dealer.output_hand(Card_GUI(self.dealer, card_x=200, card_y=100)) # this needs to be worked on holy
+
+
+            print(self.player.hand_sum()) 
 
             # self.win_logic() 
 
 
-            self.player.output_card(Card_GUI(self.player)) # this needs to be worked on holy
+            self.player.output_hand(Card_GUI(self.player)) # this needs to be worked on holy
+            # self.dealer.output_card(Card_GUI(self.dealer), card_x=200, card_y=100) # this needs to be worked on holy
             
             pygame.display.flip()
-            clock.tick(10.0)
+            clock.tick(5.0)
             pygame.display.update()
+
+            # self.player.output_card(Card_GUI(self.player)) # this needs to be worked on holy
+            
+            
 
 if __name__ == "__main__":
     blackjack = Blackjack(Entity("Jacob"), Dealer("John"))
