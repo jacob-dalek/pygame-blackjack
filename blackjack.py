@@ -49,13 +49,12 @@ class Entity:
         self.hand = []
         self.ace_count = 0
 
-    def card_logic(self):        
-        if self.value not in FACE_VALUES:
-            return self.value
-        if self.value == 'A':
+    def card_logic(self, card):        
+        if card.value == 'A':
             self.ace_count += 1
             return 11
-        
+        if card.value not in FACE_VALUES:
+            return card.value
         else:
             return 10
 
@@ -71,10 +70,12 @@ class Entity:
         if not self.hand and len(self.hand) < 1:
             return self.value
         sum = 0
-        for card in self.hand:
-            sum += card_logic(card.value, self)
+        for card in self.hand: # will need to debug
+            sum += self.card_logic(card)
         self.value = sum
-        ace_logic(self)
+
+        self.ace_logic()
+
         return self.value
 
 
@@ -86,7 +87,6 @@ class Dealer(Entity):
         super().__init__(name)
 
     def give_card(self, entity: Entity, deck: list[Card]):
-
         if entity.hand_sum() >= BLACKJACK:
             return
 
@@ -172,7 +172,7 @@ class Blackjack:
             # self.win_logic() 
 
 
-            self.player.output_card(Card_GUI(self.player))
+            self.player.output_card(Card_GUI(self.player)) # this needs to be worked on holy
             
             pygame.display.flip()
             clock.tick(10.0)
