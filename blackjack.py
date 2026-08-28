@@ -1,23 +1,13 @@
 import pygame
 import random
 import os
+from package.cosntants import * # constant dependency package. although polutting file namespace with constant values may cause issues...
 
-WIDTH = 640
-HEIGHT = 320
+pygame.init()
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.init()
 pygame.display.set_caption("Blackjack")
 clock = pygame.time.Clock()  # Initialize the clock object
-
-
-BLACKJACK = 21
-CARD_WxH = 100
-
-SUITS = ['C', 'D', 'H', 'S']
-FACE_VALUES = ['Q','J','K','A']
-VALUES = [2,3,4,5,6,7,8,9,10]
-
 
 class Card:
     def __init__(self, value, suit, size):
@@ -89,9 +79,6 @@ def ace_logic(entity: Entity):
         entity.ace_count -= 1
         entity.value -= 10
      
-# def give_card(deck: list[Card])-> Card:
-#     return deck.pop(0)
-
 
 class Dealer(Entity):
     def __init__(self, name=""):
@@ -113,7 +100,7 @@ class Dealer(Entity):
             self.hand.append(deck.pop(0))
                
     def deal_cards(self, entity: Entity, deck: list[Card]):
-        for card in range(2): # this is the first hand
+        for _ in range(2):
             self.give_card(self, deck)
             self.give_card(entity, deck)
 
@@ -125,6 +112,11 @@ class Dealer(Entity):
     #         card_x += CARD_WxH
 
 class Blackjack:
+    def __init__(self, player: Entity, dealer: Dealer):
+        self.player = player
+        self.dealer = dealer
+
+
     @staticmethod
     def init_deck(deck: list[Card]):
         for suit in SUITS:
@@ -132,9 +124,7 @@ class Blackjack:
                 deck.append(Card(value, suit, 90))
         random.shuffle(deck)
 
-    def __init__(self, player: Entity, dealer: Dealer):
-        self.player = player
-        self.dealer = dealer
+    
     
     def run(self): 
         deck: list[Card] = []
