@@ -63,12 +63,6 @@ class Entity:
     def output_card(self, card_gui: Card_GUI, card_x=0): # defualt arg not great there is a better way of handling data surely
         card_gui.display_hand(card_x)
 
-    def give_card(self, deck: list[Card]):
-        self.hand.append(deck.pop())
-
-    def get_scale(self):
-        return pygame.transform.scale
-
     def hand_sum(self):
         if not self.hand and len(self.hand) < 1:
             return self.value
@@ -162,8 +156,7 @@ class Blackjack:
             screen.fill((50,225,10))
 
             if keys[pygame.K_SPACE]:
-                self.player.give_card(deck)
-                self.player.hand_sum()
+                ...
 
             # self.dealer.logic(deck, self.player)
             # self.dealer.card_gui(self.player)
