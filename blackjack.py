@@ -55,13 +55,13 @@ class Card_GUI:
         self.card_x = card_x 
         self.card_y = card_y
 
-    def display_card(self):
+    def dealer_cards_begin(self): # mediocre naming 
         self.card_y -=self.card_size
 
         for index, url in enumerate([card.get_image_url() for card in self.entity.hand]):
             if (self.card_x > WIDTH-60): # will need alternative resolution logic
                 self.card_x = 0
-                self.card_y -= self.card_size
+                # self.card_y -= self.card_size
 
             image = pygame.image.load(url)
             image = pygame.transform.scale(image, (self.card_size, self.card_size)) # looks dodgy
@@ -110,10 +110,6 @@ class Entity:
     def output_hand(self, card_gui: Card_GUI): # defualt arg not great there is a better way of handling data surely
         card_gui.display_hand()
 
-    def output_card(self, card_gui: Card_GUI, card):
-        card_gui.display_card(card)
-
-
     def hand_sum(self):
         if not self.hand and len(self.hand) < 1:
             return self.value
@@ -130,6 +126,8 @@ class Entity:
 class Dealer(Entity):
     def __init__(self, name=""):
         super().__init__(name)
+        self.card_gui = Card_GUI(self, card_x=200, card_y=100) # magic numbers
+
 
     def give_card(self, entity: Entity, deck: list[Card]):
         if entity.hand_sum() >= BLACKJACK:
@@ -139,6 +137,9 @@ class Dealer(Entity):
 
     def reveal_card(self):
         self.hand[0]
+
+    def output_card(self):
+        self.card_gui.dealer_cards_begin()
 
     def logic(self, deck: list[Card], player: Entity):
         if (self.value == 17):
@@ -222,7 +223,7 @@ class Blackjack:
 
             self.user_input(deck)
 
-            self.dealer.output_card(Card_GUI(self.dealer, card_x=200, card_y=100), self.dealer.hand[0]) # this needs to be worked on holy
+            # self.dealer.output_card(Card_GUI(self.dealer, card_x=200, card_y=100)) # this needs to be worked on holy
 
 
             # print(self.player.hand_sum()) 
@@ -230,14 +231,16 @@ class Blackjack:
             self.dealer.logic(deck, self.player)
 
 
+
             self.win_logic() 
 
 
             self.player.output_hand(Card_GUI(self.player)) # this needs to be worked on holy
             # self.dealer.output_card(Card_GUI(self.dealer), card_x=200, card_y=100) # this needs to be worked on holy
+            self.dealer.output_hand(self.dealer.card_gui)
             
             pygame.display.flip()
-            clock.tick(3.0)
+            clock.tick(5.0)
             pygame.display.update()
 
             # self.player.output_card(Card_GUI(self.player)) # this needs to be worked on holy
