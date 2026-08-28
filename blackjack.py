@@ -20,25 +20,36 @@ VALUES = [2,3,4,5,6,7,8,9,10]
 
 
 class Card:
-    def __init__(self, value, suit):
+    def __init__(self, value, suit, size):
         self.value = value
         self.suit = suit
+        self.size = size 
 
-    def get_image(self):
+    def get_image_url(self):
         card = f"{os.getcwd()}/cards/{self.value}-{self.suit}.png" 
-        image = pygame.image.load(card)
-        return image
-        # image = pygame.transform.scale(image,(180,180))
-        # screen.blit(image,(0,HEIGHT-180))
+        return card
 
     def __repr__(self): # not __str__ weird dundee methods 
         return f"{self.value} {self.suit}"
 
-def init_deck(deck: list[Card]):
-        for suit in SUITS:
-            for value in FACE_VALUES + VALUES:
-                deck.append(Card(value, suit))
-        random.shuffle(deck)
+class Card_GUI:
+    def __init__(self, entity, card_size=90):
+        self.entity = entity
+        self.card_size = card_size
+
+    def display_hand(self, card_x=0):
+        card_y = HEIGHT-self.card_size
+        for url in [card.get_image_url() for card in self.entity.hand]:
+            if (card_x > WIDTH-60): # will need alternative resolution logic
+                card_x = 0
+                card_y -= self.card_size
+
+            image = pygame.image.load(url)
+            image = pygame.transform.scale(image, (self.card_size, self.card_size))
+            screen.blit(image, (card_x, card_y))
+            card_x += self.card_size
+
+
 
 
 class Entity:
@@ -49,25 +60,14 @@ class Entity:
         self.ace_count = 0
         self.end_turn = False
 
-        # value is slightly broken if get_sum is not invoked
+    def output_card(self, card_gui: Card_GUI, card_x=0): # defualt arg not great there is a better way of handling data surely
+        card_gui.display_hand(card_x)
 
-    @property
-    def get_value(self) -> int:
-        return self.value # python encapsulation weird???...
+    def give_card(self, deck: list[Card]):
+        self.hand.append(deck.pop())
 
-    def card_GUI(self):
-        print(self.hand) # not very pythonic GUI
-
-        card_x = 0     
-        card_y = HEIGHT-CARD_WxH 
-        for card in self.hand: # could use list for loops but not in the mood
-            if (card_x > WIDTH-60):
-                card_x = 0
-                card_y -= 90
-            image = pygame.transform.scale(card.get_image(),(CARD_WxH,CARD_WxH)) # perhaps i could override or create my own method instead of repeating logic...
-            screen.blit(image,(card_x,card_y))
-            card_x += CARD_WxH
-
+    def get_scale(self):
+        return pygame.transform.scale
 
     def hand_sum(self):
         if not self.hand and len(self.hand) < 1:
@@ -75,12 +75,10 @@ class Entity:
         sum = 0
         for card in self.hand:
             sum += card_logic(card.value, self)
-
         self.value = sum
-
         ace_logic(self)
-        
         return self.value
+
 
 def card_logic(value, entity: Entity):        
         if value not in FACE_VALUES:
@@ -97,8 +95,8 @@ def ace_logic(entity: Entity):
         entity.ace_count -= 1
         entity.value -= 10
      
-def give_card(deck: list[Card])-> Card:
-    return deck.pop(0)
+# def give_card(deck: list[Card])-> Card:
+#     return deck.pop(0)
 
 class Dealer(Entity):
     def __init__(self, name=""):
@@ -109,13 +107,6 @@ class Dealer(Entity):
 
     def reveal_card(self):
         self.hand[0]
-
-    def reveal_hand(self):
-        card_x = 30
-        for card in self.hand: # could use list for loops but not in the mood
-            image = pygame.transform.scale(card.get_image(),(CARD_WxH,CARD_WxH))
-            screen.blit(image,(card_x, 50 ))
-            card_x += CARD_WxH
 
     def logic(self, deck: list[Card], player: Entity):
         if (self.value == 17):
@@ -128,17 +119,23 @@ class Dealer(Entity):
                
     def deal_cards(self, entity: Entity, deck: list[Card]):
         for card in range(2): # this is the first hand
-            self.hand.append(give_card(deck))
-            entity.hand.append(give_card(deck)) # i feel like this can be DNRY'd
+            self.give_card(self, deck)
+            self.give_card(entity, deck)
 
     #overriding inherited function not sure if there is a better approach
-    def card_GUI(self, player: Entity):
-            card_x = 30
-            image = pygame.transform.scale(self.hand[0].get_image(),(CARD_WxH,CARD_WxH))
-            screen.blit(image,(card_x, 50 ))
-            card_x += CARD_WxH
+    # def card_gui(self, player: Entity):
+    #         card_x = 30
+    #         image = pygame.transform.scale(self.hand[0].get_image_url(),(CARD_WxH,CARD_WxH))
+    #         screen.blit(image,(card_x, 50 ))
+    #         card_x += CARD_WxH
 
 class Blackjack:
+    @staticmethod
+    def init_deck(deck: list[Card]):
+        for suit in SUITS:
+            for value in FACE_VALUES + VALUES:
+                deck.append(Card(value, suit, 90))
+        random.shuffle(deck)
 
     def __init__(self, player: Entity, dealer: Dealer):
         self.player = player
@@ -146,7 +143,8 @@ class Blackjack:
     
     def run(self): 
         deck: list[Card] = []
-        init_deck(deck)
+        Blackjack.init_deck(deck)
+        print(deck)
         running = True
 
         self.dealer.deal_cards(self.player, deck)
@@ -163,20 +161,18 @@ class Blackjack:
 
             screen.fill((50,225,10))
 
-            if keys[pygame.K_SPACE] and self.player.value != 21 and self.player.value < 21:
-                self.dealer.give_card(self.player, deck)
+            if keys[pygame.K_SPACE]:
+                self.player.give_card(deck)
                 self.player.hand_sum()
 
-            self.dealer.logic(deck, self.player)
-            self.dealer.card_GUI(self.player)
-            print(self.dealer.hand_sum())
-
-            if (self.player.value > BLACKJACK):
-                self.dealer.reveal_hand()
+            # self.dealer.logic(deck, self.player)
+            # self.dealer.card_gui(self.player)
+            # print(self.dealer.hand_sum()) =
 
 
 
-            self.player.card_GUI()
+
+            self.player.output_card(Card_GUI(self.player))
             
             pygame.display.flip()
             clock.tick(10.0)
