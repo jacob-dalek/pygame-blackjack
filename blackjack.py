@@ -55,10 +55,24 @@ class Card_GUI:
         self.card_x = card_x 
         self.card_y = card_y
 
-    # def display_card(self, card):
-    #     image = pygame.image.load(url)
-    #     image = pygame.transform.scale(image, (self.card_size, self.card_size))
-    #     screen.blit(image, (card_x, card_y))
+    def display_card(self):
+        self.card_y -=self.card_size
+
+        for index, url in enumerate([card.get_image_url() for card in self.entity.hand]):
+            if (self.card_x > WIDTH-60): # will need alternative resolution logic
+                self.card_x = 0
+                self.card_y -= self.card_size
+
+            image = pygame.image.load(url)
+            image = pygame.transform.scale(image, (self.card_size, self.card_size)) # looks dodgy
+
+            if (index > 0):
+                image = pygame.image.load(CARD_BACK)
+                image = pygame.transform.scale(image, (self.card_size, self.card_size)) # looks dodgy
+                screen.blit(image, (self.card_x, self.card_y))
+
+            screen.blit(image, (self.card_x, self.card_y))
+            self.card_x += self.card_size
 
     def display_hand(self):
         self.card_y -=self.card_size
@@ -68,7 +82,7 @@ class Card_GUI:
                 self.card_y -= self.card_size
 
             image = pygame.image.load(url)
-            image = pygame.transform.scale(image, (self.card_size, self.card_size))
+            image = pygame.transform.scale(image, (self.card_size, self.card_size)) # looks dodgy
             screen.blit(image, (self.card_x, self.card_y))
             self.card_x += self.card_size
 
@@ -95,6 +109,10 @@ class Entity:
 
     def output_hand(self, card_gui: Card_GUI): # defualt arg not great there is a better way of handling data surely
         card_gui.display_hand()
+
+    def output_card(self, card_gui: Card_GUI, card):
+        card_gui.display_card(card)
+
 
     def hand_sum(self):
         if not self.hand and len(self.hand) < 1:
@@ -125,10 +143,13 @@ class Dealer(Entity):
     def logic(self, deck: list[Card], player: Entity):
         if (self.value == 17):
             return self.value
-        # if (self.value < 16 and player.value > 18):
-        #     self.hand.append(deck.pop(0))
+        if (self.value < 16 and player.value > 18 and player.value < 21 ):
+            self.hand.append(deck.pop(0))
 
-        while (self.value != BLACKJACK and player.value == BLACKJACK): # drains the deck not to sure why needs to ne debugged
+        while (self.value != BLACKJACK and player.value == BLACKJACK):
+            if not deck:
+                return
+             # drains the deck not to sure why needs to ne debugged
             self.hand.append(deck.pop(0))
                
     def deal_cards(self, entity: Entity, deck: list[Card]):
@@ -150,7 +171,6 @@ class Blackjack:
             self.dealer.give_card(self.player, deck)
 
         if keys[pygame.K_n]:
-            # self.win_logic()
             return
 
         
@@ -202,19 +222,22 @@ class Blackjack:
 
             self.user_input(deck)
 
-            self.dealer.output_hand(Card_GUI(self.dealer, card_x=200, card_y=100)) # this needs to be worked on holy
+            self.dealer.output_card(Card_GUI(self.dealer, card_x=200, card_y=100), self.dealer.hand[0]) # this needs to be worked on holy
 
 
-            print(self.player.hand_sum()) 
+            # print(self.player.hand_sum()) 
 
-            # self.win_logic() 
+            self.dealer.logic(deck, self.player)
+
+
+            self.win_logic() 
 
 
             self.player.output_hand(Card_GUI(self.player)) # this needs to be worked on holy
             # self.dealer.output_card(Card_GUI(self.dealer), card_x=200, card_y=100) # this needs to be worked on holy
             
             pygame.display.flip()
-            clock.tick(5.0)
+            clock.tick(3.0)
             pygame.display.update()
 
             # self.player.output_card(Card_GUI(self.player)) # this needs to be worked on holy

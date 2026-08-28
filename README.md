@@ -2,3 +2,5 @@ This is visual Blackjack project. I have never used Pygame before and the codeba
 
 STILL A WORK IN PROGRESS
 <img width="787" height="827" alt="blackjackprojectpygame" src="https://github.com/user-attachments/assets/db73ab0e-2c5b-44be-9de9-3f41a59f6a25" />
+
+Implemented a "back card" until dealer reveals after game 
