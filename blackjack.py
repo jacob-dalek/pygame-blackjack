@@ -92,6 +92,7 @@ def ace_logic(entity: Entity):
 # def give_card(deck: list[Card])-> Card:
 #     return deck.pop(0)
 
+
 class Dealer(Entity):
     def __init__(self, name=""):
         super().__init__(name)
