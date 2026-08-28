@@ -1,7 +1,7 @@
 import pygame
 import random
 import os
-from package.cosntants import * # constant dependency package. although polutting file namespace with constant values may cause issues...
+from package.constants import * # constant dependency package. although polutting file namespace with constant values may cause issues...
 
 pygame.init()
 
@@ -48,7 +48,21 @@ class Entity:
         self.name = name
         self.hand = []
         self.ace_count = 0
-        self.end_turn = False
+
+    def card_logic(self):        
+        if self.value not in FACE_VALUES:
+            return self.value
+        if self.value == 'A':
+            self.ace_count += 1
+            return 11
+        
+        else:
+            return 10
+
+    def ace_logic(self):
+        while (self.ace_count > 0 and self.value > 21):
+            self.ace_count -= 1
+            self.value -= 10
 
     def output_card(self, card_gui: Card_GUI, card_x=0): # defualt arg not great there is a better way of handling data surely
         card_gui.display_hand(card_x)
@@ -64,20 +78,7 @@ class Entity:
         return self.value
 
 
-def card_logic(value, entity: Entity):        
-        if value not in FACE_VALUES:
-            return value
-        if value == 'A':
-            entity.ace_count += 1
-            return 11
-        
-        else:
-            return 10
 
-def ace_logic(entity: Entity):
-    while (entity.ace_count > 0 and entity.value > 21):
-        entity.ace_count -= 1
-        entity.value -= 10
      
 
 class Dealer(Entity):
@@ -85,6 +86,10 @@ class Dealer(Entity):
         super().__init__(name)
 
     def give_card(self, entity: Entity, deck: list[Card]):
+
+        if entity.hand_sum() >= BLACKJACK:
+            return
+
         entity.hand.append(deck.pop(0))
 
     def reveal_card(self):
@@ -104,18 +109,29 @@ class Dealer(Entity):
             self.give_card(self, deck)
             self.give_card(entity, deck)
 
-    #overriding inherited function not sure if there is a better approach
-    # def card_gui(self, player: Entity):
-    #         card_x = 30
-    #         image = pygame.transform.scale(self.hand[0].get_image_url(),(CARD_WxH,CARD_WxH))
-    #         screen.blit(image,(card_x, 50 ))
-    #         card_x += CARD_WxH
-
 class Blackjack:
     def __init__(self, player: Entity, dealer: Dealer):
         self.player = player
         self.dealer = dealer
 
+
+    def win_logic(self):
+        player_score = 21
+        dealer_score = 21
+
+        # not a fan of the chaining but if it works so be it
+        if player_score > dealer_score and player_score < BLACKJACK: 
+            print(f"{self.player.name} wins!")
+        if dealer_score > player_score and dealer_score < BLACKJACK: 
+            print("dealers wins!")
+        if player_score == BLACKJACK: 
+            print(f"{self.player.name} Blackjack!")
+        if dealer_score == BLACKJACK: 
+            print(f"dealer Blackjack!")
+        if player_score == dealer_score: 
+            print("Draw")
+        else:
+            print("what even is this branch?")
 
     @staticmethod
     def init_deck(deck: list[Card]):
@@ -147,13 +163,13 @@ class Blackjack:
             screen.fill((50,225,10))
 
             if keys[pygame.K_SPACE]:
-                ...
+                self.dealer.give_card(self.player, deck)
 
             # self.dealer.logic(deck, self.player)
             # self.dealer.card_gui(self.player)
             # print(self.dealer.hand_sum()) =
 
-
+            # self.win_logic() 
 
 
             self.player.output_card(Card_GUI(self.player))
