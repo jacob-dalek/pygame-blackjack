@@ -1,3 +1,6 @@
+1. To run clone the repo then in the terminal "pip install -r requirements.txt" and run!
+2. This is unfinished very buggy the core logic works but i have never used pygame before...
+
 This is visual Blackjack project. I have never used Pygame before and the codebase is a messy will need to ammend the goal is to get a functional working project then ammend and improve the code base :) Ace logic works. 
 
 STILL A WORK IN PROGRESS
