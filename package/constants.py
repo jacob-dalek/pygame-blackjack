@@ -9,9 +9,9 @@ CURR_DIR = os.getcwd()
 
 CARD_BACK = f"{CURR_DIR}/cards/card-back-black.png"
 
-WIDTH = 640
+WIDTH = 720
 HEIGHT = 320
 
-# ENGINE = Engine(WIDTH, HEIGHT)
+FRAMERATE = 10
 
 BLACKJACK = 21

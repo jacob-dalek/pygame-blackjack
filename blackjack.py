@@ -9,6 +9,10 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Blackjack")
 clock = pygame.time.Clock()  # Initialize the clock object
 
+def update_screen(fps=FRAMERATE)->None:
+    pygame.display.update()
+    clock.tick(FRAMERATE)
+
 class Card:
     def __init__(self, score, suit, size):
         self.score = score
@@ -35,11 +39,12 @@ class Card_GUI:
         return image
 
 class Entity:
-    def __init__(self):
+    def __init__(self, name=""):
         self.card_gui = Card_GUI()
         self.score = 0
         self.hand = []
         self.ace_count = 0
+        self.name = name
 
     def display_hand(self):
             card_pos_x = 0
@@ -68,9 +73,6 @@ class Entity:
         while (self.ace_count > 0 and self.score > 21):
             self.ace_count -= 1
             self.score -= 10
-
-    # def output_hand(self, card_gui: Card_GUI): # defualt arg not great there is a better way of handling data surely
-    #     card_gui.display_hand()
 
     def hand_sum(self):
         if not self.hand and len(self.hand) < 1:
@@ -133,8 +135,10 @@ class Dealer(Entity):
             # delay = pygame.time.delay(delay * 1000) # 1 second == 1000 milliseconds
             self.hand.append(deck.pop(0))
 
-        while (self.score != BLACKJACK and player.score == BLACKJACK):
+        while (self.hand_sum() != BLACKJACK and player.score == BLACKJACK):
             if not deck:
+                return
+            if self.score > BLACKJACK:
                 return
              # drains the deck not to sure why needs to ne debugged
             self.hand.append(deck.pop(0))
@@ -151,23 +155,6 @@ class Blackjack:
         self.player = player
         self.dealer = dealer
 
-    # def user_input(self, deck):
-    #     keys = pygame.key.get_pressed()
-    #     hit = pygame.K_SPACE
-    #     stand = pygame.K_n
-
-
-
-    #     if hit and not self.is_bust(self.player): # hit
-    #         self.dealer.give_card(self.player, deck)
-            
-
-    #     if stand: # stand
-    #         self.dealer.display_hand()
-    #         self.dealer.logic(deck, self.player)
-    #         pygame.display.update()
-    #         clock.tick(5.0)
-
 
     def is_draw(self) -> bool:
         return True if (self.player.score == self.dealer.score) else False
@@ -176,28 +163,28 @@ class Blackjack:
     def is_blackjack(self, entity: Entity) -> bool:
         return True if(entity.score == BLACKJACK) else False 
 
-
-
     def win_logic(self):
-        player_score = self.player.score
-        dealer_score = self.player.score
-
-        # not a fan of the chaining but if it works so be it
-        if player_score > dealer_score and player_score < BLACKJACK: 
-            print(f"{self.player.name} wins!")
-        if dealer_score > player_score and dealer_score < BLACKJACK: 
-            print("dealers wins!")
-        if player_score == BLACKJACK: 
-            print(f"{self.player.name} Blackjack!")
-        if dealer_score == BLACKJACK: 
-            print(f"dealer Blackjack!")
-        if player_score == dealer_score: 
+        if (self.player.score > self.dealer.score and not self.is_bust(self.player)):
+            print("Player Wins!")
+        if (self.dealer.score > self.player.score and not self.is_bust(self.dealer)):
+            print("Dealer Wins!")
+        if (self.is_draw()):
             print("Draw")
-        else:
-            print("what even is this branch?")
 
-        self.dealer.display_hand()
+        if self.is_bust(self.player):
+            print("Player Bust")
+            self.dealer.display_hand() 
+        if (self.is_bust(self.dealer)):
+            print("Dealer Bust")
+        if (self.is_blackjack(self.player)):
+            print("Player Blackjack!")
+        if (self.is_blackjack(self.dealer)):
+            print("Dealer Blackjack!")
 
+
+
+    def hit_conditions(self, entity) -> bool:
+        return True if (self.is_bust(entity) and not self.is_blackjack(entity)) else False
 
     @staticmethod
     def init_deck(deck: list[Card]):
@@ -206,8 +193,6 @@ class Blackjack:
                 deck.append(Card(score, suit, 90))
         random.shuffle(deck)
 
-    
-    
     def run(self): 
         deck: list[Card] = []
         Blackjack.init_deck(deck)
@@ -226,51 +211,32 @@ class Blackjack:
                 if event.type == pygame.QUIT:
                     running = False
                 elif event.type == pygame.KEYDOWN:
-                    if event.key == hit and not self.is_bust(self.player) and not is_stand_flag:
+                    if event.key == hit and not is_stand_flag:
                         self.dealer.give_card(self.player, deck)
-                        print("Hello world?")
+                        if (self.hit_conditions(self.player)):
+                            is_stand_flag = True
 
                     if event.key == stand:
                         self.dealer.logic(deck, self.player)
-                        pygame.display.update()
-                        clock.tick(5.0)
                         is_stand_flag = True
 
             self.player.hand_sum()
             self.dealer.hand_sum() # need a dnry here
+            self.player.score = 21
 
-            screen.fill((50,225,10))
+            screen.fill((40,225,100))
 
             self.dealer.conceal_cards()
             self.player.display_hand()
 
-
             if is_stand_flag:
-                self.dealer.display_hand()
-                pygame.display.update()
-                clock.tick(5.0)
+                self.dealer.logic(deck, self.player)
+                print(self.dealer.hand)
+                update_screen()
             else:
-                pygame.display.update()
-                clock.tick(5.0)
+                update_screen()
 
-
-
-            # self.dealer.output_hand()
-
-            # self.win_logic() 
-
-
-            # self.dealer.output_card(Card_GUI(self.dealer), card_x=200, card_y=100) # this needs to be worked on holy
-            # self.dealer.output_hand(self.dealer.card_gui)
-            
-            # pygame.display.flip()
-        pygame.display.update()
-        clock.tick(5.0)
-
-
-            # self.player.output_card(Card_GUI(self.player)) # this needs to be worked on holy
-            
-            
+        update_screen()
 
 if __name__ == "__main__":
     blackjack = Blackjack(Entity(), Dealer())
