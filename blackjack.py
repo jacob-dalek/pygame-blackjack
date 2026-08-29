@@ -49,37 +49,37 @@ class Card:
         return f"{self.value} {self.suit}"
 
 class Card_GUI:
-    def __init__(self, entity, card_size=90, card_x=0, card_y=HEIGHT):
-        self.entity: Entity = entity
+    def __init__(self, card_size=90, card_x=0, card_y=HEIGHT):
         self.card_size = card_size
         self.card_x = card_x 
         self.card_y = card_y
-        self.coordinate = (self.card_size, self.card_size)
+        self.card_scale = (90,90)
 
     def get_card(self, card: Card):
         image = pygame.image.load(card.get_image_url())
-        image = pygame.transform.scale(image, self.coordinate) # looks dodgy
+        image = pygame.transform.scale(image, self.card_scale) # looks dodgy
         return image
 
-    def display_hand(self):
-        card_pos_x = 0
-        self.card_y -=self.card_size
-        for url in [card.get_image_url() for card in self.entity.hand]:
-            if (self.card_x > WIDTH-60): # will need alternative resolution logic
-                self.card_x = 0
-                self.card_y -= self.card_size
-
-            image = pygame.image.load(url)
-            image = pygame.transform.scale(image, self.coordinate) # looks dodgy
-            screen.blit(image, (self.card_x, self.card_y))
-            card_pos_x += self.card_size
-
 class Entity:
-    def __init__(self, name=""):
+    def __init__(self):
+        self.card_gui = Card_GUI()
         self.value = 0
-        self.name = name
         self.hand = []
         self.ace_count = 0
+
+    def display_hand(self):
+            card_pos_x = 0
+            # self.card_y -=self.card_size
+            for card in self.hand:
+                if (self.card_gui.card_x > WIDTH-60): # will need alternative resolution logic
+                    self.card_gui.card_x = 0
+                    self.card_gui.card_y -= self.card_gui.card_size
+    
+                image = self.card_gui.get_card(card)
+                
+                screen.blit(image, (card_pos_x, self.card_gui.card_x))
+    
+                card_pos_x += self.card_gui.card_size
 
     def card_logic(self, card):        
         if card.value == 'A':
@@ -95,8 +95,8 @@ class Entity:
             self.ace_count -= 1
             self.value -= 10
 
-    def output_hand(self, card_gui: Card_GUI): # defualt arg not great there is a better way of handling data surely
-        card_gui.display_hand()
+    # def output_hand(self, card_gui: Card_GUI): # defualt arg not great there is a better way of handling data surely
+    #     card_gui.display_hand()
 
     def hand_sum(self):
         if not self.hand and len(self.hand) < 1:
@@ -112,13 +112,16 @@ class Entity:
 
 
 class Dealer(Entity):
-    def __init__(self, name=""):
-        super().__init__(name)
-        self.card_gui = Card_GUI(self, card_x=200, card_y=100) # magic numbers
+
+    def __init__(self):
+        super().__init__() 
+        self.card_gui = Card_GUI(card_x=200, card_y=100) # magic numbers 
 
     def conceal_cards(self): # mediocre naming 
             card_pos_x = 0
             for index, card in enumerate(self.hand):
+                coordinate = (card_pos_x, self.card_gui.card_x)
+
                 if (self.card_gui.card_x > WIDTH-60): # will need alternative resolution logic
                     self.card_gui.card_x = 0
                     self.card_gui.card_y -= self.card_gui.card_size
@@ -127,10 +130,10 @@ class Dealer(Entity):
     
                 if (index > 0):
                     image = pygame.image.load(CARD_BACK)
-                    image = pygame.transform.scale(image, self.card_gui.coordinate) 
-                    screen.blit(image, (card_pos_x, self.card_gui.card_y))
+                    image = pygame.transform.scale(image, self.card_gui.card_scale) 
+                    screen.blit(image, coordinate)
     
-                screen.blit(image, (card_pos_x, self.card_gui.card_y))
+                screen.blit(image, coordinate)
 
                 card_pos_x += self.card_gui.card_size
 
@@ -236,16 +239,15 @@ class Blackjack:
 
             self.dealer.logic(deck, self.player)
 
+            # self.dealer.conceal_cards()
             self.dealer.conceal_cards()
+            self.player.display_hand()
 
             # self.dealer.output_hand()
-
-
 
             # self.win_logic() 
 
 
-            self.player.output_hand(Card_GUI(self.player)) # this needs to be worked on holy
             # self.dealer.output_card(Card_GUI(self.dealer), card_x=200, card_y=100) # this needs to be worked on holy
             # self.dealer.output_hand(self.dealer.card_gui)
             
@@ -258,5 +260,5 @@ class Blackjack:
             
 
 if __name__ == "__main__":
-    blackjack = Blackjack(Entity("Jacob"), Dealer("John"))
+    blackjack = Blackjack(Entity(), Dealer())
     blackjack.run()
