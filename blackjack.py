@@ -11,7 +11,7 @@ clock = pygame.time.Clock()  # Initialize the clock object
 
 def update_screen(fps=FRAMERATE)->None:
     pygame.display.update()
-    clock.tick(FRAMERATE)
+    clock.tick(fps)
 
 class Card:
     def __init__(self, score, suit, size):
@@ -86,7 +86,6 @@ class Entity:
 
         return self.score
 
-
 class Dealer(Entity):
 
     def __init__(self):
@@ -113,7 +112,6 @@ class Dealer(Entity):
                 screen.blit(image, coordinate)
 
                 card_pos_x += self.card_gui.card_size
-
 
     def give_card(self, entity: Entity, deck: list[Card]):
         if entity.hand_sum() >= BLACKJACK:
@@ -148,13 +146,10 @@ class Dealer(Entity):
             self.give_card(self, deck)
             self.give_card(entity, deck)
 
-
-
 class Blackjack:
     def __init__(self, player: Entity, dealer: Dealer):
         self.player = player
         self.dealer = dealer
-
 
     def is_draw(self) -> bool:
         return True if (self.player.score == self.dealer.score) else False
@@ -181,8 +176,6 @@ class Blackjack:
         if (self.is_blackjack(self.dealer)):
             print("Dealer Blackjack!")
 
-
-
     def hit_conditions(self, entity) -> bool:
         return True if (self.is_bust(entity) and not self.is_blackjack(entity)) else False
 
@@ -197,17 +190,13 @@ class Blackjack:
         deck: list[Card] = []
         Blackjack.init_deck(deck)
         running = True
-
         self.dealer.deal_cards(self.player, deck)
-
         is_stand_flag = False
-        while running:
 
+        while running:
             hit = pygame.K_SPACE
             stand = pygame.K_n
-
             for event in pygame.event.get():
-
                 if event.type == pygame.QUIT:
                     running = False
                 elif event.type == pygame.KEYDOWN:
@@ -215,14 +204,12 @@ class Blackjack:
                         self.dealer.give_card(self.player, deck)
                         if (self.hit_conditions(self.player)):
                             is_stand_flag = True
-
                     if event.key == stand:
                         self.dealer.logic(deck, self.player)
                         is_stand_flag = True
 
             self.player.hand_sum()
             self.dealer.hand_sum() # need a dnry here
-            self.player.score = 21
 
             screen.fill((40,225,100))
 
