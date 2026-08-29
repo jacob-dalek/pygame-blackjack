@@ -49,7 +49,7 @@ class Card:
         return f"{self.value} {self.suit}"
 
 class Card_GUI:
-    def __init__(self, card_size=90, card_x=0, card_y=HEIGHT):
+    def __init__(self, card_size=90, card_x=210, card_y=0):
         self.card_size = card_size
         self.card_x = card_x 
         self.card_y = card_y
@@ -77,7 +77,7 @@ class Entity:
     
                 image = self.card_gui.get_card(card)
                 
-                screen.blit(image, (card_pos_x, self.card_gui.card_x))
+                screen.blit(image, (card_pos_x, self.card_gui.card_y))
     
                 card_pos_x += self.card_gui.card_size
 
@@ -115,12 +115,12 @@ class Dealer(Entity):
 
     def __init__(self):
         super().__init__() 
-        self.card_gui = Card_GUI(card_x=200, card_y=100) # magic numbers 
+        self.card_gui = Card_GUI(card_x=50, card_y=50) # magic numbers 
 
     def conceal_cards(self): # mediocre naming 
             card_pos_x = 0
             for index, card in enumerate(self.hand):
-                coordinate = (card_pos_x, self.card_gui.card_x)
+                coordinate = (card_pos_x, self.card_gui.card_y)
 
                 if (self.card_gui.card_x > WIDTH-60): # will need alternative resolution logic
                     self.card_gui.card_x = 0
