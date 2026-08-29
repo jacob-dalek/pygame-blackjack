@@ -50,31 +50,19 @@ class Card:
 
 class Card_GUI:
     def __init__(self, entity, card_size=90, card_x=0, card_y=HEIGHT):
-        self.entity = entity
+        self.entity: Entity = entity
         self.card_size = card_size
         self.card_x = card_x 
         self.card_y = card_y
+        self.coordinate = (self.card_size, self.card_size)
 
-    def dealer_cards_begin(self): # mediocre naming 
-        self.card_y -=self.card_size
-
-        for index, url in enumerate([card.get_image_url() for card in self.entity.hand]):
-            if (self.card_x > WIDTH-60): # will need alternative resolution logic
-                self.card_x = 0
-                # self.card_y -= self.card_size
-
-            image = pygame.image.load(url)
-            image = pygame.transform.scale(image, (self.card_size, self.card_size)) # looks dodgy
-
-            if (index > 0):
-                image = pygame.image.load(CARD_BACK)
-                image = pygame.transform.scale(image, (self.card_size, self.card_size)) # looks dodgy
-                screen.blit(image, (self.card_x, self.card_y))
-
-            screen.blit(image, (self.card_x, self.card_y))
-            self.card_x += self.card_size
+    def get_card(self, card: Card):
+        image = pygame.image.load(card.get_image_url())
+        image = pygame.transform.scale(image, self.coordinate) # looks dodgy
+        return image
 
     def display_hand(self):
+        card_pos_x = 0
         self.card_y -=self.card_size
         for url in [card.get_image_url() for card in self.entity.hand]:
             if (self.card_x > WIDTH-60): # will need alternative resolution logic
@@ -82,9 +70,9 @@ class Card_GUI:
                 self.card_y -= self.card_size
 
             image = pygame.image.load(url)
-            image = pygame.transform.scale(image, (self.card_size, self.card_size)) # looks dodgy
+            image = pygame.transform.scale(image, self.coordinate) # looks dodgy
             screen.blit(image, (self.card_x, self.card_y))
-            self.card_x += self.card_size
+            card_pos_x += self.card_size
 
 class Entity:
     def __init__(self, name=""):
@@ -128,6 +116,24 @@ class Dealer(Entity):
         super().__init__(name)
         self.card_gui = Card_GUI(self, card_x=200, card_y=100) # magic numbers
 
+    def conceal_cards(self): # mediocre naming 
+            card_pos_x = 0
+            for index, card in enumerate(self.hand):
+                if (self.card_gui.card_x > WIDTH-60): # will need alternative resolution logic
+                    self.card_gui.card_x = 0
+                    self.card_gui.card_y -= self.card_gui.card_size
+    
+                image = self.card_gui.get_card(card)
+    
+                if (index > 0):
+                    image = pygame.image.load(CARD_BACK)
+                    image = pygame.transform.scale(image, self.card_gui.coordinate) 
+                    screen.blit(image, (card_pos_x, self.card_gui.card_y))
+    
+                screen.blit(image, (card_pos_x, self.card_gui.card_y))
+
+                card_pos_x += self.card_gui.card_size
+
 
     def give_card(self, entity: Entity, deck: list[Card]):
         if entity.hand_sum() >= BLACKJACK:
@@ -138,8 +144,8 @@ class Dealer(Entity):
     def reveal_card(self):
         self.hand[0]
 
-    def output_card(self):
-        self.card_gui.dealer_cards_begin()
+    def output_hand(self):
+        self.card_gui.display_hand()
 
     def logic(self, deck: list[Card], player: Entity):
         if (self.value == 17):
@@ -230,14 +236,18 @@ class Blackjack:
 
             self.dealer.logic(deck, self.player)
 
+            self.dealer.conceal_cards()
+
+            # self.dealer.output_hand()
 
 
-            self.win_logic() 
+
+            # self.win_logic() 
 
 
             self.player.output_hand(Card_GUI(self.player)) # this needs to be worked on holy
             # self.dealer.output_card(Card_GUI(self.dealer), card_x=200, card_y=100) # this needs to be worked on holy
-            self.dealer.output_hand(self.dealer.card_gui)
+            # self.dealer.output_hand(self.dealer.card_gui)
             
             pygame.display.flip()
             clock.tick(5.0)
